@@ -1,0 +1,124 @@
+# 基本传感器与机器人定义
+define topurg ranger
+(
+  sensor(
+    range [ 0.02 15.0 ]
+    fov 360.00
+    samples 540
+  )
+  color "black"
+  size [ 0.05 0.05 0.1 ]
+)
+
+define pr2 position
+(
+  size [0.2 0.2 0.237]    # 0.15->0.3 sz1030
+  origin [0.0 0 0 0]
+  gui_nose 1
+  drive "diff"
+  topurg(pose [ 0.0 0 0.287 0 ])
+  velocity_bounds [-2 2 -2 2 -2 2 -180 180 ]
+  acceleration_bounds [-2 2 -2 2 -2 2 -180 180]
+)
+
+define roomba position
+(
+  size [0.6 0.6 0.75]     # 1.2 * 0.625 = 0.75
+  origin [0.0 0 0 0]
+  gui_nose 0
+  drive "omni"              # 修改：使用全向驱动，支持任意方向移动（而非diff差分驱动）
+  color "black"
+  block
+  (
+    points 16
+    # 所有坐标乘以 0.625，使半径变为 0.3
+    point[0] [0.3 0.0]        # 0.48 * 0.625
+    point[1] [0.2775 0.115]   # 0.444 * 0.625, 0.184 * 0.625
+    point[2] [0.21 0.21]      # 0.336 * 0.625
+    point[3] [0.115 0.2775]   # 0.184 * 0.625, 0.444 * 0.625
+    point[4] [0.0 0.3]        # 0.48 * 0.625
+    point[5] [-0.115 0.2775]  
+    point[6] [-0.21 0.21]     
+    point[7] [-0.2775 0.115]  
+    point[8] [-0.3 0.0]       
+    point[9] [-0.2775 -0.115] 
+    point[10] [-0.21 -0.21]   
+    point[11] [-0.115 -0.2775]
+    point[12] [0.0 -0.3]      
+    point[13] [0.115 -0.2775] 
+    point[14] [0.21 -0.21]    
+    point[15] [0.2775 -0.115] 
+    z [0.0 0.75]              # 1.2 * 0.625
+  )
+  obstacle_return 1
+  ranger_return 1    # 修改：让动态障碍物返回lidar距离值，以便统一处理动静态障碍物
+)
+
+
+
+
+
+
+# -------- 地图设置 --------
+define floorplan model
+(
+  color "gray30"
+  boundary 1
+  gui_nose 0
+  gui_grid 0
+  gui_outline 0
+  gripper_return 0
+  fiducial_return 0
+  ranger_return 1
+)
+
+resolution 0.005
+interval_sim 200
+speedup 3
+window
+(
+  rotate [ 0.000 0.000 ]
+  scale 28.806
+  show_data 1
+)
+
+floorplan
+(
+  name "willow"
+  bitmap "./d6.jpg"
+  size [20.0 20.0 1.0]
+  pose [ 0.000 0.000 0 00.000 ]
+)
+
+pr2( pose [ 10 10 0 -90.000 ] name "pr2" color "blue")
+
+# -------- 36个静态障碍物（顺序已随机） --------
+
+# -------- 8个动态障碍物 --------
+roomba(pose [ 60.0 -15.0 0.0 0.0 ] name "roomba_dynamic_1" color "orange" )
+roomba(pose [ 60.0 -12.0 0.0 0.0 ] name "roomba_dynamic_2" color "orange" )
+roomba(pose [ 60.0 -9.0 0.0 0.0 ] name "roomba_dynamic_3" color "orange" )
+roomba(pose [ 60.0 -6.0 0.0 0.0 ] name "roomba_dynamic_4" color "orange" )
+roomba(pose [ 60.0 -3.0 0.0 0.0 ] name "roomba_dynamic_5" color "orange" )
+roomba(pose [ 60.0 0.0 0.0 0.0 ] name "roomba_dynamic_6" color "orange" )
+roomba(pose [ 60.0 3.0 0.0 0.0 ] name "roomba_dynamic_7" color "orange" )
+roomba(pose [ 60.0 6.0 0.0 0.0 ] name "roomba_dynamic_8" color "orange" )
+
+
+# 目标点可视化标记
+define target_marker position
+(
+  size [0.2 0.2 0.2]
+  origin [0.0 0 0 0]
+  gui_nose 0
+  drive "diff"
+  color "yellow"
+  obstacle_return 0  # 不作为障碍物
+  ranger_return 0    # 激光雷达不检测
+  # 添加这些参数来启用ROS控制
+  velocity_bounds [-2 2 -2 2 -2 2 -180 180]
+  acceleration_bounds [-2 2 -2 2 -2 2 -180 180]
+)
+
+# 添加目标点实例
+target_marker(pose [0.0 0.0 0.0 0.0] name "target_point" color "green")
